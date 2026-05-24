@@ -1,0 +1,59 @@
+{
+  "downloader": {
+    "method": "tiktokdownloader",
+    "tiktokdownloader_api": "http://127.0.0.1:5555",
+    "max_retries": 3
+  },
+  "ffmpeg": {
+    "video_codec": "copy",
+    "audio_volume_db": -0.05,
+    "audio_codec": "aac",
+    "audio_bitrate": "128k",
+    "add_noise_pct": 0.3
+  },
+  "niche_detection": {
+    "api_url": "http://127.0.0.1:20128/v1/chat/completions",
+    "model": "gemini-2.5-flash",
+    "temperature": 0.0,
+    "max_tokens": 10
+  },
+  "meta": {
+    "access_token": "EAAKA2OT1FroBRUxF5Lmx6PC0rqBBvEX7VrWtpbyoUlBH6x7QzaVCWozV63ZAzXwvjWN3RF8ZAHdWv5umKSq3FjCFUDjRF7FhOZBjF6O7MzjlIDdtnNYfitUuIloBDVktKfw5KkeOFGI06tdbuHxyCZAMkdW7ZAXqGZAM32GgJCkn78oUo8ZAg5CG95lTAnSLMZC8jAZDZD",
+    "fb_page_ids": [
+      "997737406765722",
+      "1095027587028611",
+      "1106473725873832",
+      "1076073462253318",
+      "1097639206747534",
+      "1014428148422867",
+      "705227266006359",
+      "130926706776075",
+      "117894204535045",
+      "106154442367713",
+      "113362838304758",
+      "111112401865173",
+      "110423711917429",
+      "108865932074826",
+      "101627059401417",
+      "670238643001863"
+    ],
+    "ig_account_ids": [
+      "17841471390596625"
+    ],
+    "upload_endpoint_fb": "https://graph.facebook.com/v19.0/{page_id}/videos",
+    "upload_endpoint_ig": "https://graph.facebook.com/v19.0/{ig_user_id}/media"
+  },
+  "anti_spam": {
+    "same_account_delay_min": 45,
+    "same_account_delay_max": 120,
+    "cross_account_delay_min": 10,
+    "cross_account_delay_max": 25,
+    "max_videos_per_account_per_day": 4,
+    "organic_ratio": 5
+  },
+  "queue": {
+    "max_daily_total": 50,
+    "processing_hours_start": 6,
+    "processing_hours_end": 23
+  }
+}
