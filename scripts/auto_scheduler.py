@@ -15,6 +15,62 @@ DOWNLOAD_DIR = BASE / "temp/downloads"
 PROCESSED_DIR = BASE / "temp/processed"
 
 # ─── Known TikTok fashion profiles ───
+
+# ─── OPTIMIZED: Retry + Concurrent ──────────────────────────
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def post_with_retry(url, params, files=None, max_retries=3):
+    """Post to FB with exponential backoff retry."""
+    for attempt in range(max_retries):
+        try:
+            if files:
+                r = requests.post(url, params=params, files=files, timeout=120)
+            else:
+                r = requests.post(url, params=params, timeout=20)
+            data = r.json()
+            if "id" in data:
+                return (True, data["id"])
+            if "error" in data:
+                code = data["error"].get("code", 0)
+                if code in [4, 17, 80000, 80001]:  # Rate limit, retry
+                    time.sleep(2 ** attempt * 5)
+                    continue
+            return (False, data.get("error", {}).get("message", str(data)))
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+            else:
+                return (False, str(e))
+    return (False, "Max retries exceeded")
+
+def deploy_batch_concurrent(posts, pages, max_workers=5):
+    """Deploy posts to pages concurrently with retry."""
+    ok, bad = 0, 0
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = []
+        for (niche, msg, link), p in [(x, y) for x in posts for y in random.sample(pages, min(3, len(pages)))]:
+            futures.append(executor.submit(
+                post_with_retry,
+                f"https://graph.facebook.com/v19.0/{p['id']}/feed",
+                {"access_token": p["access_token"], "message": msg.format(link=link)}
+            ))
+        
+        for f in as_completed(futures):
+            success, result = f.result()
+            if success:
+                ok += 1
+            else:
+                bad += 1
+    return ok, bad
+
+# ─── PROGRESS TRACKER ───────────────────────────────────────
+def save_progress(stats):
+    """Save deployment stats to JSON for dashboard."""
+    Path("logs/pipeline_stats.json").write_text(json.dumps({
+        "timestamp": datetime.now().isoformat(),
+        **stats
+    }, indent=2))
+
 KNOWN_PROFILES = [
     "trendsandang.idn",
     "shankara_adw",
