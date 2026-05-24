@@ -11,7 +11,7 @@ Stack:
   Meta Graph API                          → Upload to FB Pages & IG
 
 Author: Vilona · BerkahKarya Digital
-Version: 1.0.0 · 2026-05-24
+Version: 1.1.0 · 2026-05-24
 """
 
 import os
@@ -40,8 +40,12 @@ AFFILIATE_DB = BASE_DIR / "data" / "affiliate_links"
 
 # Niche folders → affiliate links
 NICHE_FOLDERS = {
-    "sepatu_sneakers":    "sepatu_sneakers/links.txt",
     "ootd_hijab":         "ootd_hijab/links.txt",
+    "handphone":          "handphone/links.txt",
+    "parfum":             "parfum/links.txt",
+    "skincare":           "skincare/links.txt",
+    "health":             "health/links.txt",
+    "sepatu_sneakers":    "sepatu_sneakers/links.txt",
     "tas_wanita":         "tas_wanita/links.txt",
     "atasan_pria":        "atasan_pria/links.txt",
     "general_fashion":    "general_fashion/links.txt",
@@ -50,7 +54,7 @@ NICHE_FOLDERS = {
 # Default config
 DEFAULT_CONFIG = {
     "downloader": {
-        "method": "tiktokdownloader",  # tiktokdownloader | ytdlp | direct
+        "method": "tikwm_api",  # tiktokdownloader | ytdlp | direct
         "tiktokdownloader_api": "http://127.0.0.1:5555",
         "max_retries": 3,
     },

@@ -37,6 +37,23 @@ SHOPEE_LINKS = [
     'https://s.shopee.co.id/2VoerS7Vzm',
 ]
 
+# Multi-niche fallback content for when TikTok scrape fails
+TEXT_POSTS = [
+    ('handphone', '📱 HP TERLARIS 2026 — iPhone 15, Samsung A16, POCO X8 Pro! 🔥\n\nCek harga terbaik di Shopee sebelum beli 👇\n{link}\n\n#handphone #gadget #hpmurah'),
+    ('parfum', '🫧 PARFUM MURAH TAHAN LAMA — Mixue, Le Labo, Kasturi Arab! ✨\n\nWanginya tahan seharian, harga terjangkau 👇\n{link}\n\n#parfum #wangimurah'),
+    ('skincare', '✨ SKINCARE BPOM 2026 — glowing tanpa mahal! 🔥\n\nCream HN, ESHAL, Serum — semua BPOM 👇\n{link}\n\n#skincare #glowing #bpom'),
+    ('health', '💊 MINYAK DAYAK ASLI — herbal tradisional ampuh! 🌿\n\nNyeri otot? Masuk angin? 3RB+ terjual 👇\n{link}\n\n#herbal #minyakdayak #kesehatan'),
+    ('fashion', '👗 DASTER VIRAL 2026 — nyaman & kekinian! 🔥\n\nModel terbaru, rayon adem, cocok daily 👇\n{link}\n\n#daster #fashion #ootd'),
+]
+
+NICHE_LINKS = {
+    'handphone': Path('data/affiliate_links/handphone/links.txt'),
+    'parfum': Path('data/affiliate_links/parfum/links.txt'),
+    'skincare': Path('data/affiliate_links/skincare/links.txt'),
+    'health': Path('data/affiliate_links/health/links.txt'),
+    'fashion': Path('data/affiliate_links/ootd_hijab/links.txt'),
+}
+
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'}
 
 def log(msg):
@@ -100,6 +117,31 @@ def deploy_to_fb(video_path, caption, pages):
         time.sleep(3)
     return ok, bad
 
+
+def deploy_text_posts(pages):
+    """Fallback: deploy text posts when TikTok scrape fails."""
+    ok, bad = 0, 0
+    for niche, msg in random.sample(TEXT_POSTS, min(3, len(TEXT_POSTS))):
+        link_file = NICHE_LINKS.get(niche)
+        if link_file and link_file.exists():
+            links = [l.strip() for l in link_file.read_text().splitlines() if l.strip()]
+            link = random.choice(links) if links else SHOPEE_LINKS[0]
+        else:
+            link = random.choice(SHOPEE_LINKS)
+        
+        for p in random.sample(pages, 3):
+            try:
+                r = requests.post(f"https://graph.facebook.com/v19.0/{p['id']}/feed",
+                    params={"access_token": p["access_token"], "message": msg.format(link=link)},
+                    timeout=20).json()
+                if "id" in r:
+                    log(f"  ✅ {p['name']} — [{niche}]")
+                    ok += 1
+            except: bad += 1
+            time.sleep(3)
+    return ok, bad
+
+
 def run_cycle():
     """One complete pipeline cycle."""
     log("🔄 AUTO-SCHEDULER CYCLE START")
@@ -139,6 +181,12 @@ def run_cycle():
             
             ok, bad = deploy_to_fb(video_path, caption, pages)
             total_posted += ok
+    
+    # Fallback: if no videos downloaded, post text content
+    if total_downloaded == 0:
+        log("📝 No videos scraped — deploying text posts")
+        text_ok, _ = deploy_text_posts(pages)
+        total_posted += text_ok
     
     log(f"✅ CYCLE DONE — {total_downloaded} downloaded, {total_posted} posted")
     return total_posted
